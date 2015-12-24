@@ -92,20 +92,20 @@ Sources: [DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-
 
 ### 13 - Clone the Catalog app from Github
 
-1. `$ cd /var/www`. Then: `$ sudo mkdir catalog'.
+1. `$ cd /var/www`. Then: `$ sudo mkdir catalog`.
 2. Change owner for the *catalog* folder: `$ sudo chown -R grader:grader catalog`.
 3. Move inside that newly created folder: `$ cd /catalog` and clone the catalog repository from Github: `$ git clone https://github.com/iliketomatoes/catalog.git catalog`.
 4. Make a *catalog.wsgi* file to serve the application over the *mod_wsgi*. That file should look like this:
-`
-#!/usr/bin/python
 
+```python
 import sys
 import logging
 logging.basicConfig(stream=sys.stderr)
 sys.path.insert(0, "/var/www/catalog/")
 
 from catalog import app as application
-`
+```
+
 5. Some tweaks were needed to deploay the catalog app, so I made a *deployment* branch which slightly differs from the *master*. Move inside the repository, `$ cd /var/www/catalog/catalog` and change branch with: `$ git checkout deployment`.
 
 ### 14 - Install virtual environment, Flask and the project's dependencies
@@ -124,9 +124,9 @@ Sources: [DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-
 
 1. Create a virtual host conifg file: `$ sudo nano /etc/apach2/sites-available/catalog.conf`.
 2. Paste in the following lines of code:
-`
+```
 <VirtualHost *:80>
-    ServerName 52.34.208.247
+    ServerName  ec2-52-34-208-247.us-west-2.compute.amazonaws.com
     ServerAdmin admin@52.34.208.247
     WSGIDaemonProcess catalog python-path=/var/www/catalog:/var/www/catalog/venv/lib/python2.7/site-packages
     WSGIProcessGroup catalog
@@ -144,10 +144,15 @@ Sources: [DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-
     LogLevel warn
     CustomLog ${APACHE_LOG_DIR}/access.log combined
 </VirtualHost>
-`
+```
+
 * Specifying what Python to use through the *WSGIDaemonProcess* line can save you from a big mess. In this case we are explicitly saying to use the virtual environment and its packages to run the application.
 
 3. Enable the new virtual host: `$ sudo a2ensite catalog`.
 
 Source: [DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-run-django-with-mod_wsgi-and-apache-with-a-virtualenv-python-environment-on-a-debian-vps)
+
+### 16 - Install and configure PostgreSQL
+
+
 

@@ -22,7 +22,7 @@
 
 Source: [UbuntuTime](https://help.ubuntu.com/community/UbuntuTime).
 
-### 4 - Configure key-based authentication for the *grader* user
+### 4 - Configure the key-based authentication for *grader* user
 
 1. Generate an encryption key *on your local machine* with: `$ ssh-keygen -f ~/.ssh/udacity_grader`.
 2. Log into the remote VM as *root* user through ssh and create the following file: `$ touch /home/grader/.ssh/authorized_keys`.
@@ -68,11 +68,86 @@ Install *fail2ban* in order to mitigate brute force attacks by users and bots al
 4. Create a file to safely customize the *fail2ban* functionality: `$ sudo cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local` .
 5. Open the *jail.local* and edit it: `$ sudo nano /etc/fail2ban/jail.local`. Set the *destemail* field to admin user's email address.
 
-**Notes**: It doesn't make much sense to use *fail2ban* when the ssh key-based authentication is enforced. But it is still useful for other things, like smtp/imap-logins.
+**Notes**: It doesn't make much sense to use *fail2ban* when the ssh key-based authentication is enforced. Though it is still useful for other things, like smtp/imap-logins.
 
 Sources: [DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-protect-ssh-with-fail2ban-on-ubuntu-14-04), [Reddit](https://www.reddit.com/r/linuxadmin/comments/2lravs/fail2ban_does_not_detect_my_ssh_privatekey/).
 
 ### 10 - Configure cron scripts to automatically manage package updates
 
 1. Install *unattended-upgrades* if not already installed: `$ sudo apt-get install unattended-upgrades`.
-2. To enable it, do: '$ sudo dpkg-reconfigure --priority=low unattended-upgrades'.
+2. To enable it, do: `$ sudo dpkg-reconfigure --priority=low unattended-upgrades`.
+
+### 11 - Install Apache, mod_wsgi
+
+1. `$ sudo apt-get install apache2`.
+2. Mod_wsgi is an Apache HTTP server mod that enables Apache to serve Flask applications. Install *mod_wsgi* with the following command: `$ sudo apt-get install libapache2-mod-wsgi python-dev`.
+3. Enable *mod_wsgi*: `$ sudo a2enmod wsgi`.
+3. `$ sudo service apache2 start`.
+
+### 12 - Install Git
+
+1. `$ sudo apt-get install git`.
+2. Configure your username: `$ git config --global user.name <username>`.
+3. Configure your email: `$ git config --global user.email <email>`.
+
+### 13 - Clone the Catalog app from Github
+
+1. `$ cd /var/www`. Then: `$ sudo mkdir catalog'.
+2. Change owner for the *catalog* folder: `$ sudo chown -R grader:grader catalog`.
+3. Move inside that newly created folder: `$ cd /catalog` and clone the catalog repository from Github: `$ git clone https://github.com/iliketomatoes/catalog.git catalog`.
+4. Make a *catalog.wsgi* file to serve the application over the *mod_wsgi*. That file should look like this:
+`
+#!/usr/bin/python
+
+import sys
+import logging
+logging.basicConfig(stream=sys.stderr)
+sys.path.insert(0, "/var/www/catalog/")
+
+from catalog import app as application
+`
+5. Some tweaks were needed to deploay the catalog app, so I made a *deployment* branch which slightly differs from the *master*. Move inside the repository, `$ cd /var/www/catalog/catalog` and change branch with: `$ git checkout deployment`.
+
+### 14 - Install virtual environment, Flask and the project's dependencies
+
+1. Install *pip*, the tool for installing Python packages: `$ sudo apt-get install python-pip`.
+2. If *virtualenv* is not installed, use *pip* to install it using the following command: `$ sudo pip install virtualenv`.
+3. Move to the *catalog* folder: `$ cd /var/www/catalog`. Then create a new virtual environment with the following command: `$ sudo virtualenv venv`.
+4. Activate the virtual environment: `$ source venv/bin/activate`.
+5. Install Flask: `$ sudo pip install Flask`.
+6. Install all the other project's dependencies: `$ sudo pip install bleach httplib2 request oauth2client sqlalchemy python-psycopg2`.
+7. Change permissions to the virtual environment folder: `$ sudo chmod -R 777 venv`.
+
+Sources: [DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-deploy-a-flask-application-on-an-ubuntu-vps), [Dabapps](http://www.dabapps.com/blog/introduction-to-pip-and-virtualenv-python/).
+
+### 15 - Configure and enable a new apache virtual host
+
+1. Create a virtual host conifg file: `$ sudo nano /etc/apach2/sites-available/catalog.conf`.
+2. Paste in the following lines of code:
+`
+<VirtualHost *:80>
+    ServerName 52.34.208.247
+    ServerAdmin admin@52.34.208.247
+    WSGIDaemonProcess catalog python-path=/var/www/catalog:/var/www/catalog/venv/lib/python2.7/site-packages
+    WSGIProcessGroup catalog
+    WSGIScriptAlias / /var/www/catalog/catalog.wsgi
+    <Directory /var/www/catalog/catalog/>
+        Order allow,deny
+        Allow from all
+    </Directory>
+    Alias /static /var/www/catalog/catalog/static
+    <Directory /var/www/catalog/catalog/static/>
+        Order allow,deny
+        Allow from all
+    </Directory>
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    LogLevel warn
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>
+`
+* Specifying what Python to use through the *WSGIDaemonProcess* line can save you from a big mess. In this case we are explicitly saying to use the virtual environment and its packages to run the application.
+
+3. Enable the new virtual host: `$ sudo a2ensite catalog`.
+
+Source: [DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-run-django-with-mod_wsgi-and-apache-with-a-virtualenv-python-environment-on-a-debian-vps)
+

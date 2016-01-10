@@ -139,7 +139,7 @@ from catalog import app as application
 
 Sources: [DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-deploy-a-flask-application-on-an-ubuntu-vps), [Dabapps](http://www.dabapps.com/blog/introduction-to-pip-and-virtualenv-python/).
 
-### 15 - Configure and enable a new apache virtual host
+### 15 - Configure and enable a new virtual host
 
 1. Create a virtual host conifg file: `$ sudo nano /etc/apache2/sites-available/catalog.conf`.
 2. Paste in the following lines of code:
@@ -209,5 +209,8 @@ Source: [eHowStuff](http://www.ehowstuff.com/how-to-install-and-use-glances-syst
 ### 18 - Update OAuth authorized JavaScript origins
 
 1. To let users correctly log-in change the authorized URI to [http://ec2-52-34-208-247.us-west-2.compute.amazonaws.com/](http://ec2-52-34-208-247.us-west-2.compute.amazonaws.com/) on both Google and Facebook developer dashboards.
+
+### 19 - Restart Apache to launch the app
+1. `$ sudo service apache2 restart`.
 
 #### Special thanks to [*stueken*](https://github.com/stueken) who wrote a really helpful README in his [repository](https://github.com/stueken/FSND-P5_Linux-Server-Configuration).

@@ -145,7 +145,8 @@ Sources: [DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-
 2. Paste in the following lines of code:
 ```
 <VirtualHost *:80>
-    ServerName  ec2-52-34-208-247.us-west-2.compute.amazonaws.com
+    ServerName 52.34.208.247
+    ServerAlias ec2-52-34-208-247.us-west-2.compute.amazonaws.com
     ServerAdmin admin@52.34.208.247
     WSGIDaemonProcess catalog python-path=/var/www/catalog:/var/www/catalog/venv/lib/python2.7/site-packages
     WSGIProcessGroup catalog
